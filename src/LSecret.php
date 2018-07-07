@@ -45,7 +45,7 @@ class LSecret
         }
 
         $tmp1 = explode('.',$ip);
-        $tmp2 = explode('.', $ip);
+        $tmp2 = explode('.', $server_ip);
 
         if ($tmp1[0] == $tmp2[0] && $tmp1[1] == $tmp2[1])
         {
@@ -62,7 +62,7 @@ class LSecret
 
     private function notify()
     {
-        if (!$this->isCached() || true)
+        if (!$this->isCached())
         {
             $request_url = $this->request->getUri();
 
@@ -122,34 +122,41 @@ class LSecret
         if (file_exists($cache_file))
         {
             $handle = @fopen($cache_file, "r+");
-            $line = fgets($handle);
 
-            if (strpos($line,$prix) === false)
+            if ($handle)
             {
-                $str = $prix.$this->getCacheKey().'='.time()."\n";
-                fseek($handle,0);
-                fwrite($handle,$str);
-                $result = false;
-            }
-            else
-            {
-                $cache_str = str_replace($prix,'',$line);
+                $line = fgets($handle);
 
-                list($key, $time) = explode('=',$cache_str);
-
-                if ($key != $this->getCacheKey() || time() - $time > 86400)
+                if (strpos($line,$prix) === false)
                 {
                     $str = $prix.$this->getCacheKey().'='.time()."\n";
-                    ftruncate($handle,strlen($cache_str));
                     fseek($handle,0);
                     fwrite($handle,$str);
                     $result = false;
                 }
                 else
                 {
-                    $result = true;
+                    $cache_str = str_replace($prix,'',$line);
+
+                    $cache_str = trim($cache_str);
+
+                    list($key, $time) = explode('=',$cache_str);
+
+                    if ($key != $this->getCacheKey() || time() - $time > 86400)
+                    {
+                        $str = $prix.$this->getCacheKey().'='.time()."\n";
+                        ftruncate($handle,strlen($cache_str));
+                        fseek($handle,0);
+                        fwrite($handle,$str);
+                        $result = false;
+                    }
+                    else
+                    {
+                        $result = true;
+                    }
                 }
             }
+
 
             fclose($handle);
 
