@@ -12,6 +12,6 @@
         }
     ],
     "autoload": {
-        "psr-4": {"CCSecrect\\": "src/"}
+        "psr-4": {"CCSecret\\": "src/"}
     }
 }

