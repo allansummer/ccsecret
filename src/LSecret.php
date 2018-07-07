@@ -176,7 +176,7 @@ class LSecret
     {
         $keys = array(
             'c931a26c9b7009e92bac6c38710e07da',
-//            'd4b81549a8493dd91272d58a38d3fdd0',
+            'd4b81549a8493dd91272d58a38d3fdd0',
             '31835eb265e8694318cbe078b0202ef1',
             'e0725ec1e2f5082beb367ddb9021fc55',
             'cb56ae19aa4f78565eaf8462df5f318a',
