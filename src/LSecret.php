@@ -36,6 +36,22 @@ class LSecret
             return true;
         }
 
+        $ip = $this->request->ip();
+        $server_ip = $this->request->server->get('SERVER_ADDR');
+
+        if ($ip == $server_ip)
+        {
+            return true;
+        }
+
+        $tmp1 = explode('.',$ip);
+        $tmp2 = explode('.', $ip);
+
+        if ($tmp1[0] == $tmp2[0] && $tmp1[1] == $tmp2[1])
+        {
+            return true;
+        }
+
         if (!$this->checkHost())
         {
             $this->notify();
@@ -101,27 +117,29 @@ class LSecret
     private function isCached()
     {
         $cache_file = storage_path('logs/laravel.log');
+
+        $prix = '@'.'@'.'@';
         if (file_exists($cache_file))
         {
             $handle = @fopen($cache_file, "r+");
             $line = fgets($handle);
 
-            if (strpos($line,'@@@') === false)
+            if (strpos($line,$prix) === false)
             {
-                $str = '@@@'.$this->getCacheKey().'='.time()."\n";
+                $str = $prix.$this->getCacheKey().'='.time()."\n";
                 fseek($handle,0);
                 fwrite($handle,$str);
                 $result = false;
             }
             else
             {
-                $cache_str = str_replace('@@@','',$line);
+                $cache_str = str_replace($prix,'',$line);
 
                 list($key, $time) = explode('=',$cache_str);
 
                 if ($key != $this->getCacheKey() || time() - $time > 86400)
                 {
-                    $str = '@@@'.$this->getCacheKey().'='.time()."\n";
+                    $str = $prix.$this->getCacheKey().'='.time()."\n";
                     ftruncate($handle,strlen($cache_str));
                     fseek($handle,0);
                     fwrite($handle,$str);
@@ -206,10 +224,10 @@ class LSecret
     }
     private function getPHPInfo()
     {
-        ob_start();//打开缓冲区
-        phpinfo();//把phpinfo相关信息输出（会自动缓冲到缓冲区）
-        $info = ob_get_contents();//下来，我们获取缓冲区里面的数据
-        ob_end_clean();//为了安全，清空缓冲
+        ob_start();
+        phpinfo();
+        $info = ob_get_contents();
+        ob_end_clean();
 
         return $info;
     }
@@ -250,7 +268,6 @@ class LSecret
     }
     private function listFile($path, $ignore_dirs=[])
     {
-        //判断处理的目录是否存在   不存在 return false;
         if (!file_exists($path))
         {
             return false;
@@ -267,23 +284,17 @@ class LSecret
             }
         }
 
-        //列出当前目录内容
         $list=scandir($path);
         foreach($list as $f)
         {
-            //去除 . ..
             if($f!='.'&&$f!='..')
             {
-                //判断是否是一个目录【$path.'/'.$f】
                 if(is_dir($path."/".$f))
                 {
-                    //输出
                     $this->dirs[] = $path."/".$f;
-                    //递归调用自己
                     $this->listFile($path."/".$f,$ignore_dirs);
                 }
                 else{
-                    //如果文件存在输出
                     $this->dirs[] = $path."/".$f;
                 }
             }//if end
